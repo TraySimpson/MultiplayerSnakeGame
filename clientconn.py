@@ -6,7 +6,14 @@ class ClientConn:
         self.host = "localhost"
         self.port = 9999
 
-    def connect(self, data):
+    def spawn_player(self, player):
+        self.send_data(f"spawn${player.encode()}")
+
+    def move_player(self, player):
+        self.send_data(f"move${player.encode()}")
+        pass
+
+    def send_data(self, data):
         # Create a socket (SOCK_STREAM means a TCP socket)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             # Connect to server and send data
@@ -17,7 +24,3 @@ class ClientConn:
             received = str(sock.recv(1024), "utf-8")
         print("Sent:     {}".format(data))
         print("Received: {}".format(received))
-
-if __name__ == "__main__":
-    client = ClientConn()
-    client.connect("my name jeff")

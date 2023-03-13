@@ -1,6 +1,7 @@
 from graphics import *
 from array import *
 from gamecontroller import GameController
+from clientconn import ClientConn
 from player import Player
 import math
 import configparser
@@ -13,9 +14,14 @@ def main():
     player = Player("player1", (255, 0, 0))
 
     gameController = GameController()
+    if (bool(config["GAMEPLAY"]["ALLOW_MULTIPLAYER"])):
+        sender = ClientConn()
+        gameController.set_sender(sender)
+
     gameController.spawn_player(player)
     win = build_window()
     draw_graphics(win, gameController.get_map())
+    draw_ui(win, player)
     while(not gameController.is_game_over()):
         clickPoint = get_click_point(win)
         if (gameController.player_can_move_to(clickPoint, player)):
@@ -29,11 +35,18 @@ def get_click_point(win):
     return (math.floor(point.getX()), math.floor(point.getY()))
 
 def build_window():
-    mapSize = int(config["GAMEPLAY"]["MAP_SIZE"])
-    size = int(config["GRAPHICS"]["CELL_GRAPHICS_SIZE"]) * mapSize
-    win = GraphWin(width = size, height = size)
-    win.setCoords(0, 0, mapSize, mapSize)
+    width = int(config["GAMEPLAY"]["MAP_SIZE"])
+    height = int(config["GAMEPLAY"]["MAP_SIZE"]) + int(config["GRAPHICS"]["UI_BAR_HEIGHT_SCALE"])
+    cellSize = int(config["GRAPHICS"]["CELL_GRAPHICS_SIZE"])
+    win = GraphWin(width = width * cellSize, height = height * cellSize)
+    win.setCoords(0, 0, width, height)
     return win
+
+def draw_ui(win, player):
+    uiY = int(config["GAMEPLAY"]["MAP_SIZE"]) + (float(config["GRAPHICS"]["UI_BAR_HEIGHT_SCALE"]) / 2)
+    uiName = Text(Point(1, uiY), player.name)
+    uiName.setFill(color_rgb(player.color[0], player.color[1], player.color[2]))
+    uiName.draw(win)
 
 def draw_graphics(win, map):
     for x, row in enumerate(map):
