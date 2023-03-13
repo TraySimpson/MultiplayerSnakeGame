@@ -12,11 +12,13 @@ class GameController:
         self._map = self.reset_map()
         self._game_over = False
 
+    def player_can_move_to(self, point, player):
+        return self.is_players_turn(player) and self.point_is_movable(point, player)
+
     def point_is_movable(self, point, player):
         x = point[0]
         y = point[1]
-        return (self.is_players_turn(player) and
-                self.point_is_in_bounds(x, y) and 
+        return (self.point_is_in_bounds(x, y) and 
                 self.point_is_beside_player(x, y, player.position) and
                 self.point_is_available(x, y))
 
@@ -73,7 +75,7 @@ class GameController:
         playerPosition = player.position
         for x in range(-1,2):
             for y in range(-1,2):
-                if (self.point_is_movable(self._map, (playerPosition[0] + x, playerPosition[1] + y), playerPosition)):
+                if (self.point_is_movable((playerPosition[0] + x, playerPosition[1] + y), player)):
                     return False
         print(f"Game over for {player.name}!")
         return True

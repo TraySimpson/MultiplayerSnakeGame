@@ -18,7 +18,7 @@ def main():
     draw_graphics(win, gameController.get_map())
     while(not gameController.is_game_over()):
         clickPoint = get_click_point(win)
-        if (gameController.point_is_movable(clickPoint, player)):
+        if (gameController.player_can_move_to(clickPoint, player)):
             gameController.move_player(clickPoint, player)
             draw_graphics(win, gameController.get_map())
     print("Game over!")
