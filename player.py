@@ -6,7 +6,9 @@ class Player:
         self.position = None
         pass
 
-    def move_player(self, position):
+    def move_player(self, position, useTurn=True):
+        if (useTurn):
+            self.lastTurnMoved += 1
         self.position = position
 
     def has_moved_this_turn(self, turn) -> bool:

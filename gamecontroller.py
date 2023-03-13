@@ -7,16 +7,22 @@ class GameController:
         config.read('config.ini')
         self.mapSize = int(config["GAMEPLAY"]["MAP_SIZE"])
         self.cellLifetime = int(config["GAMEPLAY"]["CELL_LIFETIME"])
+        self._turn = 1         #default this to 1 as players will be set to 0
+        self._players = []
         self._map = self.reset_map()
         self._game_over = False
 
-    def point_is_movable(self, point, playerPosition):
+    def point_is_movable(self, point, player):
         x = point[0]
         y = point[1]
-        return (self.point_is_in_bounds(x, y) and 
-                self.point_is_beside_player(x, y, playerPosition) and
+        return (self.is_players_turn(player) and
+                self.point_is_in_bounds(x, y) and 
+                self.point_is_beside_player(x, y, player.position) and
                 self.point_is_available(x, y))
 
+    def is_players_turn(self, player) -> bool:
+        return not player.has_moved_this_turn(self._turn)
+    
     def point_is_in_bounds(self, x, y) -> bool:
         return x >= 0 and x < self.mapSize and y >= 0 and y < self.mapSize
 
@@ -25,6 +31,11 @@ class GameController:
 
     def point_is_available(self, x, y) -> bool:
         return self._map[x][y] is None
+    
+    def spawn_player(self, player):
+        point = (0,2)
+        self._map[point[0]][point[1]] = MapCell(player, self.cellLifetime)
+        player.move_player(point, False)
 
     def move_player(self, point, player):
         self._map[point[0]][point[1]] = MapCell(player, self.cellLifetime)
@@ -44,6 +55,8 @@ class GameController:
                     cell.progress_turn()
                     if (cell.is_cell_finished()):
                         self._map[x][y] = None
+        self._turn += 1
+        print(f"Turn: {self._turn}")
 
     def check_game_over_for_player(self, playerPosition):
         for x in range(-1,2):

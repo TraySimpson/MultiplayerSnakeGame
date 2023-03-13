@@ -13,13 +13,13 @@ def main():
     player = Player("player1", (255, 0, 0))
 
     gameController = GameController()
-    playerPosition = gameController.move_player((0,2), player)
+    gameController.spawn_player(player)
     win = build_window()
     draw_graphics(win, gameController.get_map())
     while(not gameController.is_game_over()):
         clickPoint = get_click_point(win)
-        if (gameController.point_is_movable(clickPoint, playerPosition)):
-            playerPosition = gameController.move_player(clickPoint, player)
+        if (gameController.point_is_movable(clickPoint, player)):
+            gameController.move_player(clickPoint, player)
             gameController.progress_turn()
             draw_graphics(win, gameController.get_map())
     print("Game over!")
