@@ -35,12 +35,23 @@ class GameController:
     def spawn_player(self, player):
         point = (0,2)
         self._map[point[0]][point[1]] = MapCell(player, self.cellLifetime)
+        self._players.append(player)
         player.move_player(point, False)
+        print(f"Player {player.name} joined!")
 
     def move_player(self, point, player):
         self._map[point[0]][point[1]] = MapCell(player, self.cellLifetime)
         player.move_player(point)
-        return point
+        if (self.check_game_over_for_player(player)):
+            self.is_game_over()
+        if (self.all_players_have_moved()):
+            self.progress_turn()
+
+    def all_players_have_moved(self) -> bool:
+        for player in self._players:
+            if (not player.has_moved_this_turn(self._turn)):
+                return False
+        return True
 
     def reset_map(self):
         return [[None for i in range(self.mapSize)] for j in range(self.mapSize)]
@@ -58,12 +69,18 @@ class GameController:
         self._turn += 1
         print(f"Turn: {self._turn}")
 
-    def check_game_over_for_player(self, playerPosition):
+    def check_game_over_for_player(self, player):
+        playerPosition = player.position
         for x in range(-1,2):
             for y in range(-1,2):
                 if (self.point_is_movable(self._map, (playerPosition[0] + x, playerPosition[1] + y), playerPosition)):
                     return False
+        print(f"Game over for {player.name}!")
         return True
+    
+    def check_game_over(self):
+        if (len(self._players == 2)):
+            print(f"Player {self._players[0].name} wins!")
     
     def is_game_over(self):
         return self._game_over

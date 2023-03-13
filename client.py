@@ -20,7 +20,6 @@ def main():
         clickPoint = get_click_point(win)
         if (gameController.point_is_movable(clickPoint, player)):
             gameController.move_player(clickPoint, player)
-            gameController.progress_turn()
             draw_graphics(win, gameController.get_map())
     print("Game over!")
     win.getMouse()
