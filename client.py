@@ -3,6 +3,7 @@ from array import *
 from gamecontroller import GameController
 from clientsender import ClientSender
 from player import Player
+from graphicscell import GraphicsCell
 import math
 import configparser
 
@@ -23,6 +24,7 @@ def main():
 
     gameController.spawn_player(player)
     win = build_window()
+    init_graphics(gameController.mapSize, win)
     draw_graphics(win, gameController.get_map())
     draw_ui(win, player)
     while(not gameController.is_game_over()):
@@ -45,21 +47,21 @@ def build_window():
     win.setCoords(0, 0, width, height)
     return win
 
+def init_graphics(mapSize, win):
+    global graphicsMap
+    graphicsMap = [[GraphicsCell(x, y, "white", win) for y in range(mapSize)] for x in range(mapSize)]
+
 def draw_ui(win, player):
     uiY = int(config["GAMEPLAY"]["MAP_SIZE"]) + (float(config["GRAPHICS"]["UI_BAR_HEIGHT_SCALE"]) / 2)
     uiName = Text(Point(1, uiY), player.name)
     uiName.setFill(color_rgb(player.color[0], player.color[1], player.color[2]))
     uiName.draw(win)
 
-def draw_rectangle(win, x, y, color):
-    cellGfx = Rectangle(Point(x, y), Point(x+1, y+1))
-    cellGfx.setFill(color)
-    cellGfx.draw(win)
-
 def draw_graphics(win, map):
     for x, row in enumerate(map):
         for y, cell in enumerate(row):
-            draw_rectangle(win, x, y, get_cell_color(cell))
+            graphicsMap[x][y].update_color(get_cell_color(cell), win)
+            # graphicsMap[x][y].draw_cell(win)
 
 def get_cell_color(cell):
     if (cell is None):
