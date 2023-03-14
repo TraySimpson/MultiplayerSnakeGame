@@ -22,13 +22,7 @@ class Player:
     
     def decode(data):
         data = data.split(":")
-        return Player(data[0], data[1], data[2], data[3])
-
-
-test = Player("jeff",(12,23,34))
-test.move_player((2,3))
-print(test)
-data = test.encode()
-print(data)
-test2 = Player.decode(data)
-print(test2)
+        return Player(data[0], get_tuple(data[1]), get_tuple(data[2]), int(data[3]))
+    
+def get_tuple(data):
+    return tuple(map(int, data.replace("(","").replace(")","").split(', ')))

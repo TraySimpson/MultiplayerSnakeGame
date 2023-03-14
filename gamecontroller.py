@@ -48,6 +48,7 @@ class GameController:
         print(f"Player {player.name} joined!")
 
     def move_player(self, point, player):
+        player = self.get_player_from_list(player.name)
         self._map[point[0]][point[1]] = MapCell(player, self.cellLifetime)
         player.move_player(point)
         if (self.check_game_over_for_player(player)):
@@ -57,6 +58,13 @@ class GameController:
         if (self._dataSender is not None):
             self._dataSender.move_player(player)
 
+    def get_player_from_list(self, playerName):
+        for player in self._players:
+            if player.name == playerName:
+                return player
+        else:
+            return None
+        
     def all_players_have_moved(self) -> bool:
         for player in self._players:
             if (not player.has_moved_this_turn(self._turn)):

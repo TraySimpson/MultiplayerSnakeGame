@@ -1,5 +1,4 @@
 import socket
-import sys
 
 class ClientConn:
     def __init__(self) -> None:

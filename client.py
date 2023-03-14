@@ -11,6 +11,9 @@ def main():
     config = configparser.ConfigParser()
     config.read('config.ini')
 
+    global backgroundColor
+    backgroundColor= "white"
+
     player = Player("player1", (255, 0, 0))
 
     gameController = GameController()
@@ -48,17 +51,19 @@ def draw_ui(win, player):
     uiName.setFill(color_rgb(player.color[0], player.color[1], player.color[2]))
     uiName.draw(win)
 
+def draw_rectangle(win, x, y, color):
+    cellGfx = Rectangle(Point(x, y), Point(x+1, y+1))
+    cellGfx.setFill(color)
+    cellGfx.draw(win)
+
 def draw_graphics(win, map):
     for x, row in enumerate(map):
         for y, cell in enumerate(row):
-            cellGfx = Rectangle(Point(x, y), Point(x+1, y+1))
-            color = get_cell_color(cell)
-            cellGfx.setFill(color)
-            cellGfx.draw(win)
+            draw_rectangle(win, x, y, get_cell_color(cell))
 
 def get_cell_color(cell):
     if (cell is None):
-        return "white"
+        return 
     else:
         color = color_rgb(
             get_rgb_from_turns_left(cell.color[0], cell.turnsLeft),
