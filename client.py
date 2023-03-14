@@ -1,7 +1,7 @@
 from graphics import *
 from array import *
 from gamecontroller import GameController
-from clientconn import ClientConn
+from clientsender import ClientSender
 from player import Player
 import math
 import configparser
@@ -17,8 +17,8 @@ def main():
     player = Player("player1", (255, 0, 0))
 
     gameController = GameController()
-    if (bool(config["GAMEPLAY"]["ALLOW_MULTIPLAYER"])):
-        sender = ClientConn()
+    if ((config["GAMEPLAY"]["ALLOW_MULTIPLAYER"]) == "yes"):
+        sender = ClientSender()
         gameController.set_sender(sender)
 
     gameController.spawn_player(player)
@@ -63,7 +63,7 @@ def draw_graphics(win, map):
 
 def get_cell_color(cell):
     if (cell is None):
-        return 
+        return backgroundColor
     else:
         color = color_rgb(
             get_rgb_from_turns_left(cell.color[0], cell.turnsLeft),

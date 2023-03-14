@@ -1,5 +1,6 @@
 from mapcell import MapCell
 import configparser
+import os, psutil
 
 class GameController:
     def __init__(self) -> None:
@@ -48,7 +49,7 @@ class GameController:
         print(f"Player {player.name} joined!")
 
     def move_player(self, point, player):
-        player = self.get_player_from_list(player.name)
+        player.position = self.get_player_from_list(player.name).position
         self._map[point[0]][point[1]] = MapCell(player, self.cellLifetime)
         player.move_player(point)
         if (self.check_game_over_for_player(player)):
@@ -85,7 +86,8 @@ class GameController:
                     if (cell.is_cell_finished()):
                         self._map[x][y] = None
         self._turn += 1
-        print(f"Turn: {self._turn}")
+        process = psutil.Process(os.getpid())
+        print(f"Turn: {self._turn} \t{process.memory_info().rss}")
 
     def check_game_over_for_player(self, player):
         playerPosition = player.position

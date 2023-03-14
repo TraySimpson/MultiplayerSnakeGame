@@ -1,6 +1,6 @@
 import socket
 
-class ClientConn:
+class ClientSender:
     def __init__(self) -> None:
         self.host = "localhost"
         self.port = 9999
