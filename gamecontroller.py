@@ -1,5 +1,5 @@
-from mapcell import MapCell
-import configparser
+from mapcell import MapCell, ObstacleCell
+import configparser, random
 import os, psutil
 
 class GameController:
@@ -12,6 +12,7 @@ class GameController:
         self._turn = 1         #default this to 1 as players will be set to 0
         self._players = []
         self._map = self.reset_map()
+        self.add_obstacles()
         self._game_over = False
 
     def set_sender(self, dataSender):
@@ -74,6 +75,12 @@ class GameController:
 
     def reset_map(self):
         return [[None for i in range(self.mapSize)] for j in range(self.mapSize)]
+    
+    def add_obstacles(self):
+        for i in range(10):
+            x = random.randint(0, self.mapSize-1)
+            y = random.randint(0, self.mapSize-1)
+            self._map[x][y] = ObstacleCell()
     
     def get_map(self):
         return self._map
