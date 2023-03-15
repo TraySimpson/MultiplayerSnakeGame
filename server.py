@@ -2,6 +2,7 @@ import socketserver
 import ast
 from gamecontroller import GameController
 from observer import Observer
+from player import Player
 
 def main():
     global gameController
@@ -36,14 +37,18 @@ class Server(socketserver.BaseRequestHandler):
         print(data)
         action = data["action"]
         print(action)
+        source = data["source"]
         match(action):
             case "handshake":
-                add_client(data["source"], self.client_address)
+                add_client(source, str(self.client_address))
                 self.request.sendall(bytes(f"{nextClientPort}", 'utf-8'))
             case "spawn":
-                pass
+                player = Player.decode(data["player"])
+                gameController.spawn_player(player, source)
             case "move":
-                pass
+                player = Player.decode(data["player"])
+                point = (0,1)
+                gameController.move_player(point, player, source)
         # self.request.sendall(b"Good")
 
 if (__name__ == "__main__"):
