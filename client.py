@@ -24,6 +24,7 @@ def main():
     if ((config["GAMEPLAY"]["ALLOW_MULTIPLAYER"]) == "yes"):
         sender = Observer()
         gameController.add_observer(sender)
+        gameController.setup_handshake()
 
     gameController.spawn_player(player)
     win = build_window()

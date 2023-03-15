@@ -18,6 +18,18 @@ class GameController:
     def add_observer(self, observer):
         self._observers.append(observer)
 
+    def setup_handshake(self):
+        state = {
+            "action": "handshake",
+            "mapSize": self.mapSize,
+            "cellLifeTime": self.cellLifetime,
+            "obstacles": self.get_obstacles()
+        }
+        self.notify_observers(state, None)
+
+    def get_obstacles(self):
+        return []
+
     def player_can_move_to(self, point, player):
         return self.is_players_turn(player) and self.point_is_movable(point, player)
 
