@@ -1,7 +1,8 @@
 from graphics import *
 from array import *
 from gamecontroller import GameController
-from clientsender import ClientSender
+from tcpsender import TCPSender
+from observer import Observer
 from player import Player
 from graphicscell import GraphicsCell
 import math
@@ -22,8 +23,8 @@ def main():
 
     gameController = GameController()
     if ((config["GAMEPLAY"]["ALLOW_MULTIPLAYER"]) == "yes"):
-        sender = ClientSender()
-        gameController.set_sender(sender)
+        sender = Observer()
+        gameController.add_observer(sender)
 
     gameController.spawn_player(player)
     win = build_window()

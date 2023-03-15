@@ -8,15 +8,15 @@ class GameController:
         config.read('config.ini')
         self.mapSize = int(config["GAMEPLAY"]["MAP_SIZE"])
         self.cellLifetime = int(config["GAMEPLAY"]["CELL_LIFETIME"])
-        self._dataSender = None
+        self._observers = []
         self._turn = 1         #default this to 1 as players will be set to 0
         self._players = []
         self._map = self.reset_map()
         self.add_obstacles()
         self._game_over = False
 
-    def set_sender(self, dataSender):
-        self._dataSender = dataSender
+    def add_observer(self, observer):
+        self._observers.append(observer)
 
     def player_can_move_to(self, point, player):
         return self.is_players_turn(player) and self.point_is_movable(point, player)
@@ -45,9 +45,8 @@ class GameController:
         self._map[point[0]][point[1]] = MapCell(player, self.cellLifetime)
         self._players.append(player)
         player.move_player(point, False)
-        if (self._dataSender is not None):
-            self._dataSender.spawn_player(player)
-        print(f"Player {player.name} joined!")
+        state = self.get_state_data("spawn", player)
+        self.notify_observers(state)
 
     def move_player(self, point, player):
         player.position = self.get_player_from_list(player.name).position
@@ -57,8 +56,21 @@ class GameController:
             self.is_game_over()
         if (self.all_players_have_moved()):
             self.progress_turn()
-        if (self._dataSender is not None):
-            self._dataSender.move_player(player)
+        state = self.get_state_data("move", player, point)
+        self.notify_observers(state)
+
+    def get_state_data(self, action, player, point=None):
+        data = {
+            "action": action,
+            "player": player.encode()
+        }
+        if (point is not None):
+            data["point"] = point
+        return data
+
+    def notify_observers(self, state):
+        for observer in self._observers:
+            observer.update(state)
 
     def get_player_from_list(self, playerName):
         for player in self._players:
