@@ -1,6 +1,7 @@
 import socketserver
 import ast
 from gamecontroller import GameController
+from observer import Observer
 
 def main():
     global gameController
@@ -9,12 +10,21 @@ def main():
     global clients
     clients = []
 
-    HOST, PORT = "localhost", 9999
+    global nextClientPort
+    nextClientPort = 9000
+
+    HOST, PORT = "localhost", 9000
     server = socketserver.TCPServer((HOST, PORT), Server)
     server.serve_forever()
 
-def add_client(client):
-    clients.append(client)
+def add_client(source, address):
+    gameController.add_observer(Observer(source, get_next_port(), address))
+    clients.append(source)
+
+def get_next_port():
+    global nextClientPort
+    nextClientPort += 1
+    return nextClientPort
 
 class Server(socketserver.BaseRequestHandler):
     def handle(self):
@@ -28,12 +38,13 @@ class Server(socketserver.BaseRequestHandler):
         print(action)
         match(action):
             case "handshake":
-                pass
+                add_client(data["source"], self.client_address)
+                self.request.sendall(bytes(f"{nextClientPort}", 'utf-8'))
             case "spawn":
                 pass
             case "move":
                 pass
-        self.request.sendall("Good")
+        # self.request.sendall(b"Good")
 
 if (__name__ == "__main__"):
     main()

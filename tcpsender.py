@@ -1,9 +1,9 @@
 import socket
 
 class TCPSender:
-    def __init__(self) -> None:
-        self.host = "localhost"
-        self.port = 9999
+    def __init__(self, port=9000, host="localhost") -> None:
+        self.host = host
+        self.port = port
 
     def send_data(self, data: dict):
         # Create a socket (SOCK_STREAM means a TCP socket)
@@ -14,5 +14,6 @@ class TCPSender:
 
             # Receive data from the server and shut down
             received = str(sock.recv(1024), "utf-8")
+            print(received)
         # print("Sent:     {}".format(data))
         # print("Received: {}".format(received))
