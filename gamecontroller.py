@@ -40,15 +40,15 @@ class GameController:
     def point_is_available(self, x, y) -> bool:
         return self._map[x][y] is None
     
-    def spawn_player(self, player):
+    def spawn_player(self, player, source=None):
         point = (0,2)
         self._map[point[0]][point[1]] = MapCell(player, self.cellLifetime)
         self._players.append(player)
         player.move_player(point, False)
         state = self.get_state_data("spawn", player)
-        self.notify_observers(state)
+        self.notify_observers(state, source)
 
-    def move_player(self, point, player):
+    def move_player(self, point, player, source=None):
         player.position = self.get_player_from_list(player.name).position
         self._map[point[0]][point[1]] = MapCell(player, self.cellLifetime)
         player.move_player(point)
@@ -57,7 +57,7 @@ class GameController:
         if (self.all_players_have_moved()):
             self.progress_turn()
         state = self.get_state_data("move", player, point)
-        self.notify_observers(state)
+        self.notify_observers(state, source)
 
     def get_state_data(self, action, player, point=None):
         data = {
@@ -68,9 +68,9 @@ class GameController:
             data["point"] = point
         return data
 
-    def notify_observers(self, state):
+    def notify_observers(self, state, source):
         for observer in self._observers:
-            observer.update(state)
+            observer.update(state, source)
 
     def get_player_from_list(self, playerName):
         for player in self._players:

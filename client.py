@@ -1,7 +1,6 @@
 from graphics import *
 from array import *
 from gamecontroller import GameController
-from tcpsender import TCPSender
 from observer import Observer
 from player import Player
 from graphicscell import GraphicsCell
@@ -105,4 +104,5 @@ def get_rgb_from_turns_left(startValue, turnsLeft):
     # Clamp value between 0-255
     return max(0, min(startValue + modifier, 255))
 
-main()
+if (__name__ == "__main__"):
+    main()
