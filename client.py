@@ -4,10 +4,12 @@ from gamecontroller import GameController
 from observer import Observer
 from player import Player
 from graphicscell import GraphicsCell
+from tcpsender import TCPSender
 import math
 import configparser
+import asyncio
 
-def main():
+async def main():
     global config 
     config = configparser.ConfigParser()
     config.read('config.ini')
@@ -22,11 +24,17 @@ def main():
 
     gameController = GameController()
     if ((config["GAMEPLAY"]["ALLOW_MULTIPLAYER"]) == "yes"):
-        sender = Observer()
-        gameController.add_observer(sender)
-        gameController.setup_handshake()
+        message = { "action": "handshake"}
+        sender = TCPSender()
+        observer = Observer()
+        message = observer.prepare_data(message)
+        response = await sender.send_data(message)
+        print(f"Response: {response}")
+        sender.set_port(int(response["port"]))
+        observer.set_sender(sender)
+        gameController.add_observer(observer)
 
-    gameController.spawn_player(player)
+    await gameController.spawn_player(player)
     win = build_window()
     init_graphics_map(gameController.mapSize, win)
     draw_obstacles(win, gameController.get_map())
@@ -105,5 +113,4 @@ def get_rgb_from_turns_left(startValue, turnsLeft):
     # Clamp value between 0-255
     return max(0, min(startValue + modifier, 255))
 
-if (__name__ == "__main__"):
-    main()
+asyncio.run(main())
