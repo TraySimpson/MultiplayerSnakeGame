@@ -34,7 +34,7 @@ async def handle_client(reader, writer):
             case "handshake":
                 address = writer.get_extra_info('peername')
                 add_client(source, address)
-                response = get_config()
+                response = get_handshake_config()
             case "spawn":
                 player = Player.decode(data["player"])
                 await gameController.spawn_player(player, source)
@@ -58,7 +58,7 @@ def get_next_client_port():
     nextClientPort += 1
     return nextClientPort
 
-def get_config():
+def get_handshake_config():
     config = gameController.get_config()
     config["port"] = nextClientPort
     return config
