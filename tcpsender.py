@@ -11,13 +11,19 @@ class TCPSender:
         self.port = port
 
     async def send_data(self, data: dict):
-        # Create a socket (SOCK_STREAM means a TCP socket)
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            # Connect to server and send data
-            sock.connect((self.host, self.port))
-            sock.sendall(bytes(str(data) + "\n", "utf-8"))
+        reader, writer = await asyncio.open_connection(
+            self.host, self.port)
 
-            # Receive data from the server and shut down
-            received = str(sock.recv(1024), "utf-8")
-            print(received)
-            return ast.literal_eval(received)
+        print("Sending data!")
+        writer.write(str(data).encode())
+        await writer.drain()
+
+        received = await reader.read(255)
+        received = received.decode()
+        print(f'Received: {received}')
+
+        print('Close the connection')
+        writer.close()
+        await writer.wait_closed()
+        if (received is not None and received != ''):
+                return ast.literal_eval(received)

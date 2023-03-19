@@ -1,6 +1,6 @@
 from mapcell import MapCell, ObstacleCell
 import configparser, random
-import os, psutil
+import os, psutil, ast
 
 class GameController:
     def __init__(self) -> None:
@@ -19,14 +19,24 @@ class GameController:
     def add_observer(self, observer):
         self._observers.append(observer)
 
-    def load_config_from_handshake(self, data):
-        state = {
-            "action": "handshake",
+    def get_config(self):
+        return {
             "mapSize": self.mapSize,
-            "cellLifeTime": self.cellLifetime,
+            "cellLifetime": self.cellLifetime,
             "obstacles": self.get_obstacles()
         }
-        return state
+    
+    def load_config_from_data(self, data):
+        self.mapSize = int(data["mapSize"])
+        self.cellLifetime = int(data["cellLifetime"])
+        self._map = self.reset_map()
+        self.load_obstacles(data["obstacles"])
+
+    def load_obstacles(self, obstacles):
+        self._obstacles = []
+        for obstacle in obstacles:
+            self._obstacles.append(obstacle)
+            self._map[obstacle[0]][obstacle[1]] = ObstacleCell()
 
     def get_obstacles(self):
         return self._obstacles

@@ -29,8 +29,9 @@ async def main():
         observer = Observer()
         message = observer.prepare_data(message)
         response = await sender.send_data(message)
-        print(f"Response: {response}")
-        sender.set_port(int(response["port"]))
+        listenPort = int(response["port"])
+        load_config_from_data(response)
+        gameController.load_config_from_data(response)
         observer.set_sender(sender)
         gameController.add_observer(observer)
 
@@ -43,10 +44,14 @@ async def main():
     while(not gameController.is_game_over()):
         clickPoint = get_click_point(win)
         if (gameController.player_can_move_to(clickPoint, player)):
-            gameController.move_player(clickPoint, player)
+            await gameController.move_player(clickPoint, player)
             update_graphics(win, gameController.get_map())
     print("Game over!")
     win.getMouse()
+
+def load_config_from_data(data):
+    config["GAMEPLAY"]["CELL_LIFETIME"]
+    config["GAMEPLAY"]["MAP_SIZE"]
 
 def get_player_from_input():
     return Player("player1", (240, 240, 0))
