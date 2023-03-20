@@ -67,11 +67,9 @@ async def check_msg(port):
 
 async def handle_client(reader, writer):
     data = (await reader.read(255)).decode()
-    print(f"Client got data! {data}")
 
 async def check_click(win, gameController, player):
     clickPoint = get_click_point(win)
-    print(f"Clicked: {clickPoint}")
     if (gameController.player_can_move_to(clickPoint, player)):
         await gameController.move_player(clickPoint, player)
 
