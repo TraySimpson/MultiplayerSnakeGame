@@ -31,10 +31,13 @@ async def handle_client(reader, writer):
     action = data["action"]
     print(action)
     source = data["source"]
+    print(f"Source: {source}")
     response = {"status": "good"}
     match(action):
         case "handshake":
-            address = writer.get_extra_info('peername')
+            # address = writer.get_extra_info('socket')
+            address = "localhost"
+            print(f"Address for client: {address}")
             add_client(source, address)
             response = get_handshake_config()
         case "spawn":
