@@ -53,7 +53,10 @@ async def main():
     draw_obstacles(win, gameController.get_map())
     update_graphics(win, gameController.get_map())
     draw_ui(win, player)
+    # await check_click(win, gameController, player)
+    # await check_msg(listenPort)
     while(not gameController.is_game_over()):
+        print("update?")
         await wait_for_update(win, gameController, player, listenPort)
         print(f"Triggered an update cycle!")
         update_graphics(win, gameController.get_map())
@@ -61,14 +64,22 @@ async def main():
     win.getMouse()
 
 async def check_msg(port):
+    print(f"Listening for  on port: {port}")
     server = await asyncio.start_server(handle_client, "localhost", port)
+    print("Listener set")
     async with server:
         await server.serve_forever()
 
 async def handle_client(reader, writer):
+    print("Handling data!")
     data = (await reader.read(255)).decode()
+    writer.write(str(data).encode())
+    await writer.drain()
+    writer.close()
+    await writer.wait_closed()
 
 async def check_click(win, gameController, player):
+    print("Listening for clicks")
     clickPoint = get_click_point(win)
     if (gameController.player_can_move_to(clickPoint, player)):
         await gameController.move_player(clickPoint, player)

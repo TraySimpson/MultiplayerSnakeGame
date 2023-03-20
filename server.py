@@ -49,6 +49,8 @@ async def handle_client(reader, writer):
             player = Player.decode(data["player"])
             point = (0,1)
             await gameController.move_player(point, player, source)
+        case "test":
+            response = {"data": data}
     print(f"Sending back response: {response}")
     writer.write(str(response).encode())
     await writer.drain()
