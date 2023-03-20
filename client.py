@@ -1,5 +1,6 @@
 from graphics import *
 from array import *
+from util import *
 from gamecontroller import GameController
 from observer import Observer
 from player import Player
@@ -23,6 +24,8 @@ async def main():
     player = get_player_from_input()
 
     gameController = GameController()
+    spawnPoint = gameController.get_open_spawn_point()
+    
     if ((config["GAMEPLAY"]["ALLOW_MULTIPLAYER"]) == "yes"):
         message = { "action": "handshake"}
         sender = TCPSender()
@@ -32,10 +35,19 @@ async def main():
         listenPort = int(response["port"])
         load_config_from_data(response)
         gameController.load_config_from_data(response)
+
+        message = observer.prepare_data({
+            "action": "spawn",
+            "player": player.encode(),
+        })
+        response = await sender.send_data(message)
+        print(f"Spawn player response: {response}")
+        spawnPoint = response["point"]
+
         observer.set_sender(sender)
         gameController.add_observer(observer)
 
-    await gameController.spawn_player(player)
+    await gameController.spawn_player(player, point=spawnPoint)
     win = build_window()
     init_graphics_map(gameController.mapSize, win)
     draw_obstacles(win, gameController.get_map())

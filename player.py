@@ -1,3 +1,5 @@
+from util import *
+
 class Player:
     def __init__(self, name, color, position=None, lastTurnMoved=0) -> None:
         self.name = name
@@ -22,7 +24,8 @@ class Player:
     
     def decode(data):
         data = data.split(":")
-        return Player(data[0], get_tuple(data[1]), get_tuple(data[2]), int(data[3]))
-    
-def get_tuple(data):
-    return tuple(map(int, data.replace("(","").replace(")","").split(', ')))
+        return Player(
+            data[0], 
+            get_tuple_from_string(data[1]), 
+            get_tuple_from_string(data[2]), 
+            int(data[3]))

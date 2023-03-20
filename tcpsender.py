@@ -26,4 +26,4 @@ class TCPSender:
         writer.close()
         await writer.wait_closed()
         if (received is not None and received != ''):
-                return ast.literal_eval(received)
+            return ast.literal_eval(received)

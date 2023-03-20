@@ -63,13 +63,21 @@ class GameController:
     def point_is_available(self, x, y) -> bool:
         return self._map[x][y] is None
     
-    async def spawn_player(self, player, source=None):
-        point = (0,2)
+    async def spawn_player(self, player, source=None, point=None):
+        if (point is None):
+            point = self.get_open_spawn_point()
         self._map[point[0]][point[1]] = MapCell(player, self.cellLifetime)
         self._players.append(player)
         player.move_player(point, False)
         state = self.get_state_data("spawn", player)
         await self.notify_observers(state, source)
+        return point
+
+    def get_open_spawn_point(self):
+        while True:
+            (x, y) = self.get_random_point()
+            if self.point_is_available(x, y):
+                return (x, y)
 
     async def move_player(self, point, player, source=None):
         player.position = self.get_player_from_list(player.name).position
@@ -113,10 +121,14 @@ class GameController:
     
     def add_obstacles(self):
         for i in range(10):
-            x = random.randint(0, self.mapSize-1)
-            y = random.randint(0, self.mapSize-1)
+            (x, y) = self.get_random_point()
             self._obstacles.append((x, y))
             self._map[x][y] = ObstacleCell()
+
+    def get_random_point(self):
+        x = random.randint(0, self.mapSize-1)
+        y = random.randint(0, self.mapSize-1)
+        return (x, y)
     
     def get_map(self):
         return self._map
