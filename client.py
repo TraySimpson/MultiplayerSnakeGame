@@ -54,7 +54,7 @@ async def main():
     update_graphics(win, gameController.get_map())
     draw_ui(win, player)
     # await check_click(win, gameController, player)
-    # await check_msg(listenPort)
+    # asyncio.create_task(check_msg(listenPort))
     while(not gameController.is_game_over()):
         print("update?")
         await wait_for_update(win, gameController, player, listenPort)
@@ -86,7 +86,7 @@ async def check_click(win, gameController, player):
 
 async def wait_for_update(win, gameController, player, port):
     tasks = [
-        asyncio.create_task(check_msg(port)),
+        # asyncio.create_task(check_msg(port)),
         asyncio.create_task(check_click(win, gameController, player))
     ]
 
@@ -164,6 +164,7 @@ def get_cell_color(cell):
         )
         return color
     
+# Gradually approach white (255) as the turnsLeft approaches 0
 def get_rgb_from_turns_left(startValue, turnsLeft):
     modifier = (int(config["GAMEPLAY"]["CELL_LIFETIME"]) - turnsLeft) * int(config["GRAPHICS"]["COLOR_STEPS"])
     # Clamp value between 0-255
