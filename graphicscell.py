@@ -1,4 +1,4 @@
-from graphics import Rectangle, Point
+from graphicswindow import Rectangle, Point
 
 class GraphicsCell:
     def __init__(self, x, y, win, color="white") -> None:

@@ -1,12 +1,10 @@
-from graphics import *
 from array import *
 from util import *
 from gamecontroller import GameController
 from observer import Observer
 from player import Player
-from graphicscell import GraphicsCell
 from tcpsender import TCPSender
-import math
+from graphicswindow import GraphicsWindow
 import configparser
 import asyncio
 
@@ -14,12 +12,6 @@ async def main():
     global config 
     config = configparser.ConfigParser()
     config.read('config.ini')
-
-    global backgroundColor
-    backgroundColor= "white"
-
-    global obstacleColor
-    obstacleColor = "black"
 
     player = get_player_from_input()
 
@@ -48,20 +40,18 @@ async def main():
         gameController.add_observer(observer)
 
     await gameController.spawn_player(player, point=spawnPoint)
-    win = build_window()
-    init_graphics_map(gameController.mapSize, win)
-    draw_obstacles(win, gameController.get_map())
-    update_graphics(win, gameController.get_map())
-    draw_ui(win, player)
+    graphics = GraphicsWindow()
+    graphics.draw_graphics(gameController.get_map())
+    graphics.draw_ui(player)
     # await check_click(win, gameController, player)
     # asyncio.create_task(check_msg(listenPort))
     while(not gameController.is_game_over()):
         print("update?")
-        await wait_for_update(win, gameController, player, listenPort)
+        # await wait_for_update(win, gameController, player, listenPort)
         print(f"Triggered an update cycle!")
-        update_graphics(win, gameController.get_map())
+        graphics.update_graphics(gameController.get_map())
     print("Game over!")
-    win.getMouse()
+    graphics.get_click_point()
 
 async def check_msg(port):
     print(f"Listening for  on port: {port}")
@@ -117,57 +107,5 @@ def get_player_from_input():
     colorChoice = input()
     color = colors[colorChoice]
     return Player(playerName, color)
-
-def get_click_point(win):
-    point = win.getMouse()
-    return (math.floor(point.getX()), math.floor(point.getY()))
-
-def build_window():
-    width = int(config["GAMEPLAY"]["MAP_SIZE"])
-    height = int(config["GAMEPLAY"]["MAP_SIZE"]) + int(config["GRAPHICS"]["UI_BAR_HEIGHT_SCALE"])
-    cellSize = int(config["GRAPHICS"]["CELL_GRAPHICS_SIZE"])
-    win = GraphWin(width = width * cellSize, height = height * cellSize)
-    win.setCoords(0, 0, width, height)
-    return win
-
-def init_graphics_map(mapSize, win):
-    global graphicsMap
-    graphicsMap = [[GraphicsCell(x, y, win, backgroundColor) for y in range(mapSize)] for x in range(mapSize)]
-
-def draw_obstacles(win, map):
-    for x, row in enumerate(map):
-        for y, cell in enumerate(row):
-            if (cell is not None and cell.is_permanent()):
-                graphicsMap[x][y] = GraphicsCell(x, y, win, obstacleColor)
-
-def draw_ui(win, player):
-    uiY = int(config["GAMEPLAY"]["MAP_SIZE"]) + (float(config["GRAPHICS"]["UI_BAR_HEIGHT_SCALE"]) / 2)
-    uiName = Text(Point(1, uiY), player.name)
-    uiName.setFill(color_rgb(player.color[0], player.color[1], player.color[2]))
-    uiName.draw(win)
-
-def update_graphics(win, map):
-    for x, row in enumerate(map):
-        for y, cell in enumerate(row):
-            graphicsMap[x][y].update_color(get_cell_color(cell), win)
-
-def get_cell_color(cell):
-    if (cell is None):
-        return backgroundColor
-    elif (cell.is_permanent()):
-        return obstacleColor
-    else:
-        color = color_rgb(
-            get_rgb_from_turns_left(cell.color[0], cell.turnsLeft),
-            get_rgb_from_turns_left(cell.color[1], cell.turnsLeft),
-            get_rgb_from_turns_left(cell.color[2], cell.turnsLeft)
-        )
-        return color
-    
-# Gradually approach white (255) as the turnsLeft approaches 0
-def get_rgb_from_turns_left(startValue, turnsLeft):
-    modifier = (int(config["GAMEPLAY"]["CELL_LIFETIME"]) - turnsLeft) * int(config["GRAPHICS"]["COLOR_STEPS"])
-    # Clamp value between 0-255
-    return max(0, min(startValue + modifier, 255))
 
 asyncio.run(main())
