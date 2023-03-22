@@ -1,7 +1,6 @@
 class MapCell:
     def __init__(self, player, startTurns, permanent=False) -> None:
-        self.player = player.name
-        self.color = player.color
+        self.playerId = player.id
         self.turnsLeft = startTurns
 
     def __repr__(self):

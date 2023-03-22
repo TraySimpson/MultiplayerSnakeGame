@@ -13,7 +13,7 @@ def main():
     global nextClientPort
     nextClientPort = 9000
 
-    asyncio.run(run_server())
+    asyncio.run(run_server(), debug=True)
 
 async def run_server():
     HOST, PORT = "localhost", 9000

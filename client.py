@@ -18,6 +18,7 @@ async def main():
     gameController = GameController()
     spawnPoint = gameController.get_open_spawn_point()
     
+    listenPort = 0
     if ((config["GAMEPLAY"]["ALLOW_MULTIPLAYER"]) == "yes"):
         message = { "action": "handshake"}
         sender = TCPSender()
@@ -41,13 +42,13 @@ async def main():
 
     await gameController.spawn_player(player, point=spawnPoint)
     graphics = GraphicsWindow()
+    graphics.add_player(player)
     graphics.draw_graphics(gameController.get_map())
-    graphics.draw_ui(player)
     # await check_click(win, gameController, player)
     # asyncio.create_task(check_msg(listenPort))
     while(not gameController.is_game_over()):
         print("update?")
-        # await wait_for_update(win, gameController, player, listenPort)
+        await wait_for_update(graphics, gameController, player, listenPort)
         print(f"Triggered an update cycle!")
         graphics.update_graphics(gameController.get_map())
     print("Game over!")
@@ -70,7 +71,7 @@ async def handle_client(reader, writer):
 
 async def check_click(win, gameController, player):
     print("Listening for clicks")
-    clickPoint = get_click_point(win)
+    clickPoint = win.get_click_point()
     if (gameController.player_can_move_to(clickPoint, player)):
         await gameController.move_player(clickPoint, player)
 
@@ -95,17 +96,8 @@ def load_config_from_data(data):
     config["GAMEPLAY"]["MAP_SIZE"]
 
 def get_player_from_input():
-    return Player("player1", (255, 0, 0))
-    print("Enter player name:")
-    playerName = input()
-    print("Choose color:")
-    colors = {
-        "red": (255, 0, 0),
-        "green": (0, 255, 0),
-        "blue": (0, 0, 255)
-    }
-    colorChoice = input()
-    color = colors[colorChoice]
-    return Player(playerName, color)
+    return Player("player1")
+    playerName = input("Enter player name:")
+    return Player(playerName)
 
-asyncio.run(main())
+asyncio.run(main(), debug=True)

@@ -63,6 +63,14 @@ class GameController:
     def point_is_available(self, x, y) -> bool:
         return self._map[x][y] is None
     
+    def get_random_move(self, player):
+        playerPosition = player.position
+        for x in range(-1,2):
+            for y in range(-1,2):
+                point = (playerPosition[0] + x, playerPosition[1] + y)
+                if (self.point_is_movable(point, player)):
+                    return point
+    
     async def spawn_player(self, player, source=None, point=None):
         if (point is None):
             point = self.get_open_spawn_point()
