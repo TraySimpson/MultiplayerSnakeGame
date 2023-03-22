@@ -64,12 +64,9 @@ class GameController:
         return self._map[x][y] is None
     
     def get_random_move(self, player):
-        playerPosition = player.position
-        for x in range(-1,2):
-            for y in range(-1,2):
-                point = (playerPosition[0] + x, playerPosition[1] + y)
-                if (self.point_is_movable(point, player)):
-                    return point
+        moves = self.get_possible_moves(player)
+        index = random.randint(0, len(moves)-1)
+        return moves[index]
     
     async def spawn_player(self, player, source=None, point=None):
         if (point is None):
@@ -88,10 +85,12 @@ class GameController:
                 return (x, y)
 
     async def move_player(self, point, player, source=None):
+        if (self._game_over):
+            return
         player.position = self.get_player_from_list(player.name).position
         self._map[point[0]][point[1]] = MapCell(player, self.cellLifetime)
         player.move_player(point)
-        if (self.check_game_over_for_player(player)):
+        if (self.check_game_over_for_players()):
             self.is_game_over()
         if (self.all_players_have_moved()):
             self.progress_turn()
@@ -152,18 +151,37 @@ class GameController:
         process = psutil.Process(os.getpid())
         print(f"Turn: {self._turn} \t{process.memory_info().rss}")
 
-    def check_game_over_for_player(self, player):
+    def get_possible_moves(self, player):
         playerPosition = player.position
+        moves = []
         for x in range(-1,2):
             for y in range(-1,2):
-                if (self.point_is_movable((playerPosition[0] + x, playerPosition[1] + y), player)):
-                    return False
+                point = (playerPosition[0] + x, playerPosition[1] + y)
+                if (self.point_is_movable(point, player)):
+                    moves.append(point)
+        return moves
+    
+    def has_player_lost(self, player):
+        return player not in self._players
+    
+    def check_game_over_for_players(self):
+        playerLost = False
+        for player in self._players:
+            if(self.check_game_over_for_player(player)):
+                playerLost = True
+        return playerLost
+
+    def check_game_over_for_player(self, player):
+        if (len(self.get_possible_moves(player)) > 0):
+            return False
         print(f"Game over for {player.name}!")
+        self._players.remove(player)
         return True
     
     def check_game_over(self):
-        if (len(self._players == 2)):
+        if (len(self._players) == 1):
             print(f"Player {self._players[0].name} wins!")
+            self._game_over = True
     
     def is_game_over(self):
         return self._game_over

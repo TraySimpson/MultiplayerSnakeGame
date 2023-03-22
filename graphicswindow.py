@@ -1,5 +1,6 @@
 from graphics import *
 from graphicscell import GraphicsCell
+from graphicsplayer import GraphicsPlayer
 import configparser
 import math
 
@@ -12,6 +13,7 @@ class GraphicsWindow():
         self._borderColor = "#494B4D"
         self._graphicsMap = self._build_graphics_map()
         self._playerColors = {}
+        self._playerTexts = []
         self._nextColorIndex = 0
 
     def _load_config(self):
@@ -22,13 +24,14 @@ class GraphicsWindow():
         self._cellSize = int(config["GRAPHICS"]["CELL_GRAPHICS_SIZE"])
         self._cellLifetime = int(config["GAMEPLAY"]["CELL_LIFETIME"])
         self._colorSteps = int(config["GRAPHICS"]["COLOR_STEPS"])
+        self._uiNameSpacing = float(config["GRAPHICS"]["UI_NAME_SPACING"])
 
     def _get_color_options(self):
         return [
             "#0AC5EB",      # Deep Sky Blue
             "#1FD163",      # Malachite (Green)
             "#F2C618",      # Moon Yellow
-            "#FA2929"       #
+            "#FA2929"       # Fancy Red (Idk you try naming colors)
         ]
     
     def _get_next_color(self):
@@ -58,12 +61,23 @@ class GraphicsWindow():
                     self._graphicsMap[x][y] = GraphicsCell(x, y, self._win, self._obstacleColor)
 
     def add_player(self, player):
-        uiY = self._mapSize + (self._uiBarHeight / 2)
-        uiName = Text(Point(1, uiY), player.name)
+        y = self._mapSize + (self._uiBarHeight / 2)
         playerColor = self._get_next_color()
         self._playerColors[player.id] = playerColor
-        uiName.setFill(playerColor)
-        uiName.draw(self._win)
+        playerText = GraphicsPlayer(player, playerColor, self._win, y)
+        self._playerTexts.append(playerText)
+        playerText.move(self._uiNameSpacing * (len(self._playerTexts) - 1))
+
+    def remove_player(self, player):
+        index = None
+        for i, playerText in enumerate(self._playerTexts):
+            if (player.id == playerText.playerId):
+                index = i
+                break
+        playerText = self._playerTexts.pop(index)
+        playerText.undraw()
+        while index < (len(self._playerTexts) - 1):
+            self._playerTexts[index].move(-self._uiNameSpacing)
 
     def draw_graphics(self, map):
         self._draw_obstacles(map)
