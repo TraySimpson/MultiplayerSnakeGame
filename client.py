@@ -42,13 +42,11 @@ async def main():
     graphics = gfx.GraphicsController()
     graphics.add_player(player)
     graphics.draw_graphics(gameController.get_map())
-    # await check_click(win, gameController, player)
-    # asyncio.create_task(check_msg(listenPort))
-    while(not gameController.is_game_over()):
-        print("update?")
-        await wait_for_update(graphics, gameController, player, listenPort)
-        print(f"Triggered an update cycle!")
-        graphics.update_graphics(gameController.get_map())
+
+    print("Starting gameplay loop")
+    await wait_for_update(graphics, gameController, player, listenPort, allowMultiplayer)
+    print(f"Triggered an update cycle!")
+    graphics.update_graphics(gameController.get_map())
     print("Game over!")
     graphics.get_click_point()
 
@@ -57,7 +55,8 @@ async def check_msg(port):
     server = await asyncio.start_server(handle_client, "localhost", port)
     print("Listener set")
     async with server:
-        await server.serve_forever()
+        serverRoutine = await server.serve_forever()
+        # serverRoutine.cancel()
 
 async def handle_client(reader, writer):
     print("Handling data!")
@@ -67,27 +66,19 @@ async def handle_client(reader, writer):
     writer.close()
     await writer.wait_closed()
 
-async def check_click(win, gameController, player):
+async def check_click(gameController, player, graphics):
     print("Listening for clicks")
-    clickPoint = win.get_click_point()
-    if (gameController.player_can_move_to(clickPoint, player)):
-        await gameController.move_player(clickPoint, player)
+    while(not gameController.is_game_over()):
+        clickPoint = graphics.get_click_point()
+        if (gameController.player_can_move_to(clickPoint, player)):
+            await gameController.move_player(clickPoint, player)
+            graphics.update_graphics(gameController.get_map())
 
-async def wait_for_update(win, gameController, player, port):
-    tasks = [
-        # asyncio.create_task(check_msg(port)),
-        asyncio.create_task(check_click(win, gameController, player))
-    ]
-
-    # with asyncio.FIRST_COMPLETED, this triggers as soon as one of the events is fired
-    done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-    task = done.pop().result()
-
-    # cancel the other check
-    for future in pending:
-        future.cancel()
-
-    print(f"Task finished, returned: {task}")
+async def wait_for_update(graphics, gameController, player, port, allowMultiplayer):
+    await asyncio.gather(
+        check_click(gameController, player, graphics),
+        check_msg(port)
+    )
 
 def load_config_from_data(data):
     config["GAMEPLAY"]["CELL_LIFETIME"]

@@ -173,13 +173,13 @@ class ObserverGameController(GameController):
             self._map[obstacle[0]][obstacle[1]] = ObstacleCell()
 
     async def spawn_player(self, player, source=None, point=None):
-        point = super().spawn_player(player, source, point)
+        point = await super().spawn_player(player, source, point)
         state = self.get_state_data("spawn", player)
         await self.notify_observers(state, source)
         return point
     
     async def move_player(self, point, player, source=None):
-        super().move_player(point, player, source)
+        await super().move_player(point, player, source)
         state = self.get_state_data("move", player, point)
         await self.notify_observers(state, source)
     
