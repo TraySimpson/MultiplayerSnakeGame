@@ -1,12 +1,8 @@
 from array import *
 from util import *
-from gamecontroller import GameController, ObserverGameController
-from observer import Observer
-from player import Player
-from tcpsender import TCPSender
-from graphicscontroller import GraphicsController
-import configparser
-import asyncio
+import gamecontroller as snake
+import graphicscontroller as gfx
+import configparser, asyncio, networking
 
 async def main():
     global config 
@@ -17,14 +13,14 @@ async def main():
 
     player = get_player_from_input()
 
-    gameController = ObserverGameController() if allowMultiplayer else GameController()
+    gameController = snake.ObserverGameController() if allowMultiplayer else snake.GameController()
     spawnPoint = gameController.get_open_spawn_point()
     
     listenPort = 0
     if (allowMultiplayer):
         message = { "action": "handshake"}
-        sender = TCPSender()
-        observer = Observer()
+        sender = networking.TCPSender()
+        observer = networking.Observer()
         message = observer.prepare_data(message)
         response = await sender.send_data(message)
         listenPort = int(response["port"])
@@ -43,7 +39,7 @@ async def main():
         gameController.add_observer(observer)
 
     await gameController.spawn_player(player, point=spawnPoint)
-    graphics = GraphicsController()
+    graphics = gfx.GraphicsController()
     graphics.add_player(player)
     graphics.draw_graphics(gameController.get_map())
     # await check_click(win, gameController, player)
@@ -98,7 +94,7 @@ def load_config_from_data(data):
     config["GAMEPLAY"]["MAP_SIZE"]
 
 def get_player_from_input():
-    return Player("player1")
+    return snake.Player("player1")
     playerName = input("Enter player name:")
     return Player(playerName)
 

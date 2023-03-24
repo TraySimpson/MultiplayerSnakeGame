@@ -1,10 +1,10 @@
-import asyncio, ast
-from gamecontroller import GameController
-from observer import Observer
+import asyncio, ast, networking
+import gamecontroller as snake
+
 
 def main():
     global gameController
-    gameController = GameController()
+    gameController = snake.ObserverGameController()
 
     global clients
     clients = []
@@ -40,12 +40,12 @@ async def handle_client(reader, writer):
             add_client(source, address)
             response = get_handshake_config()
         case "spawn":
-            player = Player.decode(data["player"])
+            player = snake.Player.decode(data["player"])
             point = await gameController.spawn_player(player, source)
             print(f"Got point: {point}")
             response = {"point": point}
         case "move":
-            player = Player.decode(data["player"])
+            player = snake.Player.decode(data["player"])
             point = (0,1)
             await gameController.move_player(point, player, source)
         case "test":
@@ -58,7 +58,7 @@ async def handle_client(reader, writer):
     print("Server finished")
 
 def add_client(source, address):
-    gameController.add_observer(Observer(source, port=get_next_client_port(), host=address))
+    gameController.add_observer(networking.Observer(source, port=get_next_client_port(), host=address))
     clients.append(source)
     print(f"Client added: {source}")
 
