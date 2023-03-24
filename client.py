@@ -1,10 +1,10 @@
 from array import *
 from util import *
-from gamecontroller import GameController
+from gamecontroller import GameController, ObserverGameController
 from observer import Observer
 from player import Player
 from tcpsender import TCPSender
-from graphicswindow import GraphicsWindow
+from graphicscontroller import GraphicsController
 import configparser
 import asyncio
 
@@ -13,13 +13,15 @@ async def main():
     config = configparser.ConfigParser()
     config.read('config.ini')
 
+    allowMultiplayer = config["GAMEPLAY"]["ALLOW_MULTIPLAYER"] == "yes"
+
     player = get_player_from_input()
 
-    gameController = GameController()
+    gameController = ObserverGameController() if allowMultiplayer else GameController()
     spawnPoint = gameController.get_open_spawn_point()
     
     listenPort = 0
-    if ((config["GAMEPLAY"]["ALLOW_MULTIPLAYER"]) == "yes"):
+    if (allowMultiplayer):
         message = { "action": "handshake"}
         sender = TCPSender()
         observer = Observer()
@@ -41,7 +43,7 @@ async def main():
         gameController.add_observer(observer)
 
     await gameController.spawn_player(player, point=spawnPoint)
-    graphics = GraphicsWindow()
+    graphics = GraphicsController()
     graphics.add_player(player)
     graphics.draw_graphics(gameController.get_map())
     # await check_click(win, gameController, player)

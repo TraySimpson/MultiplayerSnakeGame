@@ -1,8 +1,7 @@
 import configparser
 from gamecontroller import GameController
-from graphicswindow import GraphicsWindow
-from player import Player
-import asyncio
+from graphicscontroller import GraphicsController
+import asyncio, gamecontroller
 
 async def main():
     global config 
@@ -11,11 +10,11 @@ async def main():
     tickTime = .2
 
     gameController = GameController()
-    graphics = GraphicsWindow()
+    graphics = GraphicsController()
     players = []
 
     for i in range(4):
-        player = Player(f"player{i}")
+        player = gamecontroller.Player(f"player{i}")
         spawnPoint = gameController.get_open_spawn_point()
         await gameController.spawn_player(player, point=spawnPoint)
         graphics.add_player(player)

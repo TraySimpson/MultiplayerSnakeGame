@@ -1,7 +1,6 @@
-import asyncio, socket, ast
+import asyncio, ast
 from gamecontroller import GameController
 from observer import Observer
-from player import Player
 
 def main():
     global gameController

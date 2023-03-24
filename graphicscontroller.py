@@ -1,10 +1,7 @@
-from graphics import *
-from graphicscell import GraphicsCell
-from graphicsplayer import GraphicsPlayer
-import configparser
-import math
+import graphics as gfx
+import configparser, math
 
-class GraphicsWindow():
+class GraphicsController():
     def __init__(self) -> None:
         self._load_config()
         self._win = self.build_window()
@@ -47,7 +44,7 @@ class GraphicsWindow():
     def build_window(self):
         width = self._mapSize
         height = self._mapSize + self._uiBarHeight
-        win = GraphWin(width = width * self._cellSize, height = height * self._cellSize)
+        win = gfx.GraphWin(width = width * self._cellSize, height = height * self._cellSize)
         win.setCoords(0, 0, width, height)
         return win
 
@@ -109,7 +106,8 @@ class GraphicsWindow():
         backgroundB = self._backgroundColor[5:7]
         return f"#{self._hex(r, turnsLeft, backgroundR)}{self._hex(g, turnsLeft, backgroundG)}{self._hex(b, turnsLeft, backgroundB)}"
         
-    # Gradually approach white (255) as the turnsLeft approaches 0
+    # Gradually approach targetColor the turnsLeft approaches 0
+    # Basically the worlds worst lerp implementation
     def _hex(self, startValue, turnsLeft, targetColor):
         diff = int(startValue, 16) - int(targetColor, 16)
         # ex 16
@@ -121,3 +119,32 @@ class GraphicsWindow():
             return f"0{hx[2:3]}"
         else:
             return hx[2:4]
+        
+
+class GraphicsPlayer:
+    def __init__(self, player, color, win, y) -> None:
+        self.playerId = player.id
+        self.text = gfx.Text(gfx.Point(1,y), player.name)
+        self.text.setFill(color)
+        self.text.draw(win)
+
+    def move(self, x):
+        self.text.move(x, 0)
+
+    def undraw(self):
+        self.text.undraw()
+
+
+class GraphicsCell:
+    def __init__(self, x, y, win, color="white", borderColor = "black") -> None:
+        self.rectangle = gfx.Rectangle(gfx.Point(x, y), gfx.Point(x+1, y+1))
+        self.rectangle.setFill(color)
+        self.rectangle.setOutline(borderColor)
+        self.draw_cell(win)
+
+    def update_color(self, color, win):
+        self.rectangle.setFill(color)
+        win.update()
+
+    def draw_cell(self, win):
+        self.rectangle.draw(win)

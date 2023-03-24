@@ -1,6 +1,4 @@
-import socket
-import ast
-import asyncio
+import ast, asyncio
 
 class TCPSender:
     def __init__(self, port=9000, host="localhost") -> None:

@@ -1,6 +1,4 @@
-from mapcell import MapCell, ObstacleCell
-import configparser, random
-import os, psutil, ast
+import configparser, random, os, psutil, uuid, util
 
 class GameController:
     def __init__(self) -> None:
@@ -8,35 +6,12 @@ class GameController:
         config.read('config.ini')
         self.mapSize = int(config["GAMEPLAY"]["MAP_SIZE"])
         self.cellLifetime = int(config["GAMEPLAY"]["CELL_LIFETIME"])
-        self._observers = []
         self._turn = 1         #default this to 1 as players will be set to 0
         self._players = []
         self._map = self.reset_map()
         self._obstacles = []
         self.add_obstacles()
         self._game_over = False
-
-    def add_observer(self, observer):
-        self._observers.append(observer)
-
-    def get_config(self):
-        return {
-            "mapSize": self.mapSize,
-            "cellLifetime": self.cellLifetime,
-            "obstacles": self.get_obstacles()
-        }
-    
-    def load_config_from_data(self, data):
-        self.mapSize = int(data["mapSize"])
-        self.cellLifetime = int(data["cellLifetime"])
-        self._map = self.reset_map()
-        self.load_obstacles(data["obstacles"])
-
-    def load_obstacles(self, obstacles):
-        self._obstacles = []
-        for obstacle in obstacles:
-            self._obstacles.append(obstacle)
-            self._map[obstacle[0]][obstacle[1]] = ObstacleCell()
 
     def get_obstacles(self):
         return self._obstacles
@@ -74,8 +49,6 @@ class GameController:
         self._map[point[0]][point[1]] = MapCell(player, self.cellLifetime)
         self._players.append(player)
         player.move_player(point, False)
-        state = self.get_state_data("spawn", player)
-        await self.notify_observers(state, source)
         return point
 
     def get_open_spawn_point(self):
@@ -94,21 +67,6 @@ class GameController:
             self.is_game_over()
         if (self.all_players_have_moved()):
             self.progress_turn()
-        state = self.get_state_data("move", player, point)
-        await self.notify_observers(state, source)
-
-    def get_state_data(self, action, player, point=None):
-        data = {
-            "action": action,
-            "player": player.encode()
-        }
-        if (point is not None):
-            data["point"] = point
-        return data
-
-    async def notify_observers(self, state, source):
-        for observer in self._observers:
-            await observer.update(state, source)
 
     def get_player_from_list(self, playerName):
         for player in self._players:
@@ -185,3 +143,123 @@ class GameController:
     
     def is_game_over(self):
         return self._game_over
+    
+
+class ObserverGameController(GameController):
+    def __init__(self) -> None:
+        super().__init__()
+        self._observers = []
+
+    def add_observer(self, observer):
+        self._observers.append(observer)
+
+    def get_config(self):
+        return {
+            "mapSize": self.mapSize,
+            "cellLifetime": self.cellLifetime,
+            "obstacles": self.get_obstacles()
+        }
+    
+    def load_config_from_data(self, data):
+        self.mapSize = int(data["mapSize"])
+        self.cellLifetime = int(data["cellLifetime"])
+        self._map = self.reset_map()
+        self.load_obstacles(data["obstacles"])
+
+    def load_obstacles(self, obstacles):
+        self._obstacles = []
+        for obstacle in obstacles:
+            self._obstacles.append(obstacle)
+            self._map[obstacle[0]][obstacle[1]] = ObstacleCell()
+
+    async def spawn_player(self, player, source=None, point=None):
+        point = super().spawn_player(player, source, point)
+        state = self.get_state_data("spawn", player)
+        await self.notify_observers(state, source)
+        return point
+    
+    async def move_player(self, point, player, source=None):
+        super().move_player(point, player, source)
+        state = self.get_state_data("move", player, point)
+        await self.notify_observers(state, source)
+    
+    def get_state_data(self, action, player, point=None):
+        data = {
+            "action": action,
+            "player": player.encode()
+        }
+        if (point is not None):
+            data["point"] = point
+        return data
+    
+    async def notify_observers(self, state, source):
+        for observer in self._observers:
+            await observer.update(state, source)
+
+
+class MapCell:
+    def __init__(self, player, startTurns, permanent=False) -> None:
+        self.playerId = player.id
+        self.turnsLeft = startTurns
+
+    def __repr__(self):
+        return f"Cell of {self.player} with {self.turnsLeft} turns left"
+
+    def progress_turn(self):
+        self.turnsLeft -= 1
+
+    def is_cell_finished(self):
+        return self.turnsLeft <= 0
+    
+    def is_permanent(self):
+        return False
+    
+
+class ObstacleCell:
+    def __init__(self) -> None:
+        pass
+
+    def __repr__(self):
+        return f"Obstacle"
+
+    def progress_turn(self):
+        pass
+
+    def is_cell_finished(self):
+        return False
+    
+    def is_permanent(self):
+        return True
+
+
+class Player:
+    def __init__(self, name, position=None, lastTurnMoved=0, id=None) -> None:
+        if (id == None):
+            id = str(uuid.uuid1())
+        self.id = id
+        self.name = name
+        self.lastTurnMoved = lastTurnMoved
+        self.position = position
+        pass
+
+    def __repr__(self):
+        return f"Player:{self.name}. Moved on turn {self.lastTurnMoved} at {self.position}"
+
+    def move_player(self, position, useTurn=True):
+        if (useTurn):
+            self.lastTurnMoved += 1
+        self.position = position
+
+    def has_moved_this_turn(self, turn) -> bool:
+        return self.lastTurnMoved >= turn
+    
+    def encode(self):
+        return f"{self.name}:{self.position}:{self.lastTurnMoved}:{self.id}"
+    
+    def decode(data):
+        data = data.split(":")
+        return Player(
+            data[0], 
+            util.get_tuple_from_string(data[1]), 
+            int(data[2]),
+            data[3])
