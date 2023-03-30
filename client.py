@@ -52,13 +52,13 @@ async def main():
 
 async def check_msg(port):
     print(f"Listening for  on port: {port}")
-    server = await asyncio.start_server(handle_client, "localhost", port)
+    server = await asyncio.start_server(handle_data_from_server, "localhost", port)
     print("Listener set")
     async with server:
         serverRoutine = await server.serve_forever()
         # serverRoutine.cancel()
 
-async def handle_client(reader, writer):
+async def handle_data_from_server(reader, writer):
     print("Handling data!")
     data = (await reader.read(255)).decode()
     writer.write(str(data).encode())
